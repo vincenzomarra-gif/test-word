@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulatore Esame Word 2007 - ICDL</title>
+<style>
+  * {
+    box-sizing: border-box;
+    user-select: none;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 780px;
+    background: #8ba5c6;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ================= BARRA DOMANDE (TONI DELL'AZZURRO) ================= */
+  .exam-header {
+    background: linear-gradient(180deg, #e7f2fc 0%, #c8e0f8 52%, #b5d4f5 100%);
+    border-bottom: 2px solid #6b96c8;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    box-shadow: 0 2px 6px rgba(21, 66, 139, 0.18);
+    z-index: 50;
+  }
+
+  .exam-badge {
+    background: linear-gradient(180deg, #2b6cb0 0%, #1a4980 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: 1px solid #123663;
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+
+  .exam-question-text {
+    flex: 1;
+    color: #10325c;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .exam-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .exam-score {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid #7da7d9;
+    color: #15428b;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 4px;
+  }
+
+  .exam-btn {
+    background: linear-gradient(180deg, #ffffff 0%, #dcebfb 100%);
+    border: 1px solid #6997cb;
+    color: #15428b;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .exam-btn:hover {
+    background: linear-gradient(180deg, #fff5d6 0%, #ffd97d 100%);
+    border-color: #c28a2b;
+    color: #3d2800;
+  }
+
+  /* ================= FINESTRA WORD 2007 ================= */
+  .word-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #bfdbff;
+    border: 1px solid #3b5a82;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Title Bar + Quick Access Toolbar */
+  .word-titlebar {
+    height: 30px;
+    background: linear-gradient(180deg, #d7e6f7 0%, #bbd4f2 45%, #a8c6ec 50%, #c1d8f4 100%);
+    border-bottom: 1px solid #8db2e3;
+    display: flex;
+    align-items: center;
+    padding-left: 52px;
+    padding-right: 8px;
+    position: relative;
+  }
+
+  .qat-bar {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.35);
+    border: 1px solid #96b7e0;
+    border-radius: 12px;
+    padding: 1px 8px;
+    height: 22px;
+  }
+
+  .qat-btn {
+    width: 20px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #15428b;
+    border: 1px solid transparent;
+  }
+
+  .qat-btn:hover {
+    background: linear-gradient(180deg, #fff6d9, #ffd875);
+    border-color: #d8a74a;
+  }
+
+  .word-doc-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    color: #1e395b;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+
+  .window-caption-btns {
+    display: flex;
+    gap: 2px;
+  }
+
+  .win-cap-btn {
+    width: 24px;
+    height: 18px;
+    border: 1px solid #7b9ec9;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #eef5fd 0%, #c6dcf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #1e395b;
+  }
+
+  .win-cap-btn.close {
+    background: linear-gradient(180deg, #f3a59b 0%, #d64b3a 100%);
+    border-color: #8c271b;
+    color: #fff;
+  }
+
+  /* Pulsante Office Circolare */
+  .office-orb {
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #ffffff 0%, #f7d794 25%, #d9822b 65%, #8c4308 100%);
+    border: 2px solid #5c7fa8;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255,255,255,0.8);
+    cursor: pointer;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .office-orb:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 0 8px #ffcf66, 0 2px 5px rgba(0,0,0,0.4);
+  }
+
+  .office-squares {
+    display: grid;
+    grid-template-columns: 7px 7px;
+    grid-template-rows: 7px 7px;
+    gap: 2px;
+    transform: rotate(-6deg);
+  }
+
+  .office-squares span:nth-child(1) { background: #f25022; border-radius: 1px; }
+  .office-squares span:nth-child(2) { background: #7fba00; border-radius: 1px; }
+  .office-squares span:nth-child(3) { background: #00a4ef; border-radius: 1px; }
+  .office-squares span:nth-child(4) { background: #ffb900; border-radius: 1px; }
+
+  /* Schede della Barra Multifunzione (Ribbon Tabs) */
+  .ribbon-tabs {
+    height: 25px;
+    background: #bfdbff;
+    padding-left: 52px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    border-bottom: 1px solid #8db2e3;
+  }
+
+  .ribbon-tab {
+    padding: 3px 13px 4px 13px;
+    font-size: 12px;
+    color: #15428b;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border: 1px solid transparent;
+    border-bottom: none;
+    cursor: pointer;
+    position: relative;
+    top: 1px;
+  }
+
+  .ribbon-tab:hover:not(.active) {
+    background: linear-gradient(180deg, #eef6ff 0%, #d3e6fc 100%);
+    border-color: #9cbce3;
+  }
+
+  .ribbon-tab.active {
+    background: linear-gradient(180deg, #ffffff 0%, #e3effd 100%);
+    border-color: #8db2e3;
+    border-bottom: 1px solid #e3effd;
+    font-weight: 600;
+    color: #15428b;
+    z-index: 5;
+  }
+
+  /* Corpo Barra Multifunzione (Ribbon Body) - Altezza completa senza tagli */
+  .ribbon-body {
+    height: 108px;
+    min-height: 108px;
+    background: linear-gradient(180deg, #e3effd 0%, #cfe2fa 50%, #c1d8f7 52%, #d8e8fc 100%);
+    border-bottom: 1px solid #7ea4d6;
+    display: flex;
+    padding: 4px 6px 5px 6px;
+    gap: 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .ribbon-panel {
+    display: none;
+    width: 100%;
+    height: 100%;
+    gap: 5px;
+  }
+
+  .ribbon-panel.active {
+    display: flex;
+  }
+
+  .ribbon-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid #96b6de;
+    border-radius: 4px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(214,231,252,0.4) 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+    height: 100%;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .ribbon-group-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 7px 3px 7px;
+  }
+
+  .ribbon-group-footer {
+    height: 18px;
+    min-height: 18px;
+    background: linear-gradient(180deg, #c7dcf6 0%, #b4d0f2 100%);
+    border-top: 1px solid #a2bfe3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #21426b;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .dialog-launcher {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px;
+    background: linear-gradient(180deg, #e7f1fd 0%, #bfd6f4 100%);
+    border: 1px solid #86a9d6;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 13px;
+    text-align: center;
+    color: #15428b;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+
+  .dialog-launcher:hover {
+    background: linear-gradient(180deg, #fff6d9 0%, #ffd875 100%);
+    border-color: #c99738;
+    color: #3d2800;
+  }
+
+  /* Pulsanti Ribbon */
+  .r-btn-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 7px;
+    height: 68px;
+    min-width: 50px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    color: #15428b;
+    text-align: center;
+    line-height: 1.2;
+    position: relative;
+  }
+
+  .r-btn-large:hover, .r-btn-small:hover, .r-icon-btn:hover {
+    background: linear-gradient(180deg, #fff8e1 0%, #ffe08c 50%, #ffd061 52%, #ffe7a3 100%);
+    border-color: #d6a449;
+  }
+
+  .r-btn-large.active-state, .r-icon-btn.active-state {
+    background: linear-gradient(180deg, #ffdf8c 0%, #ffc44d 100%);
+    border-color: #c28a2b;
+  }
+
+  .r-btn-large .r-ico {
+    font-size: 21px;
+    margin-bottom: 4px;
+  }
+
+  .r-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .r-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .r-btn-small {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 6px;
+    height: 21px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    color: #15428b;
+    white-space: nowrap;
+  }
+
+  .r-icon-btn {
+    width: 24px;
+    height: 23px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #15428b;
+    position: relative;
+  }
+
+  .r-select-box {
+    background: #ffffff;
+    border: 1px solid #8db2e3;
+    height: 22px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #1e395b;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  /* Menu a tendina Ribbon */
+  .dropdown-menu {
+    position: fixed;
+    background: #fafafa;
+    border: 1px solid #868686;
+    box-shadow: 2px 3px 8px rgba(0,0,0,0.28);
+    z-index: 200;
+    min-width: 165px;
+    padding: 2px;
+    display: none;
+  }
+
+  .dropdown-menu.show {
+    display: block;
+  }
+
+  .dd-item {
+    padding: 5px 12px;
+    font-size: 12px;
+    color: #1e395b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid transparent;
+  }
+
+  .dd-item:hover {
+    background: linear-gradient(180deg, #fff6d9, #ffd875);
+    border-color: #d8a74a;
+  }
+
+  .dd-sep {
+    height: 1px;
+    background: #d4d4d4;
+    margin: 3px 4px;
+  }
+
+  /* Menu Pulsante Office */
+  .office-menu {
+    position: absolute;
+    top: 38px;
+    left: 6px;
+    width: 340px;
+    background: #e9eff8;
+    border: 1px solid #6b8eb8;
+    border-radius: 4px;
+    box-shadow: 3px 4px 12px rgba(0,0,0,0.35);
+    z-index: 250;
+    display: none;
+    flex-direction: column;
+  }
+
+  .office-menu.show {
+    display: flex;
+  }
+
+  .office-menu-body {
+    display: flex;
+    background: #ffffff;
+    margin: 4px;
+    border: 1px solid #9ab9e0;
+  }
+
+  .office-menu-left {
+    width: 155px;
+    border-right: 1px solid #d4e1f2;
+    padding: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .om-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    font-size: 12px;
+    color: #15428b;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 3px;
+  }
+
+  .om-item:hover {
+    background: linear-gradient(180deg, #fff6d9, #ffd875);
+    border-color: #d8a74a;
+  }
+
+  .office-menu-right {
+    flex: 1;
+    background: #f4f7fc;
+    padding: 8px;
+    font-size: 11.5px;
+    color: #334e70;
+  }
+
+  .office-menu-right h4 {
+    margin: 0 0 6px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #c9d8ec;
+    font-size: 12px;
+    color: #15428b;
+  }
+
+  .office-menu-footer {
+    padding: 5px 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    background: #dbe7f7;
+  }
+
+  /* ================= AREA DI LAVORO & RIGHELLI ================= */
+  .workspace-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #8ba5c6;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .top-ruler-row {
+    height: 22px;
+    background: #c8dbf3;
+    border-bottom: 1px solid #8db2e3;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .tab-selector-box {
+    width: 22px;
+    height: 22px;
+    background: #d7e6f8;
+    border-right: 1px solid #8db2e3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 13px;
+    color: #15428b;
+    cursor: pointer;
+  }
+
+  .horizontal-ruler-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .horizontal-ruler {
+    height: 16px;
+    background: #ffffff;
+    border: 1px solid #7f9db9;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .ruler-margin-left, .ruler-margin-right {
+    height: 100%;
+    background: #b9cde5;
+  }
+
+  .ruler-active-area {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    background: #ffffff;
+  }
+
+  .ruler-tick-label {
+    position: absolute;
+    top: 1px;
+    font-size: 9px;
+    color: #333;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .ruler-tick {
+    position: absolute;
+    bottom: 0;
+    width: 1px;
+    height: 4px;
+    background: #666;
+    pointer-events: none;
+  }
+
+  .tab-stop-marker {
+    position: absolute;
+    bottom: 0;
+    font-size: 11px;
+    font-weight: 900;
+    color: #000000;
+    transform: translateX(-3px);
+    pointer-events: none;
+  }
+
+  .editor-main-row {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .vertical-ruler-col {
+    width: 22px;
+    background: #c8dbf3;
+    border-right: 1px solid #8db2e3;
+    display: flex;
+    justify-content: center;
+    padding-top: 18px;
+  }
+
+  .vertical-ruler {
+    width: 14px;
+    height: 460px;
+    background: #ffffff;
+    border: 1px solid #7f9db9;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .vr-margin {
+    height: 45px;
+    background: #b9cde5;
+  }
+
+  .vr-body {
+    flex: 1;
+    background: #ffffff;
+  }
+
+  .document-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 18px 24px 36px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* Foglio Word */
+  .word-page {
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.38);
+    border: 1px solid #5c7699;
+    color: #000000;
+    font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.15;
+    transition: width 0.25s, padding 0.25s;
+    position: relative;
+  }
+
+  .word-page.size-a4.orient-portrait {
+    width: 660px;
+    min-height: 820px;
+    padding: 64px 68px;
+  }
+
+  .word-page.size-a4.orient-landscape {
+    width: 880px;
+    min-height: 600px;
+    padding: 54px 68px;
+  }
+
+  .word-page.size-a3.orient-portrait {
+    width: 820px;
+    min-height: 980px;
+    padding: 72px 76px;
+  }
+
+  .word-page.size-a3.orient-landscape {
+    width: 980px;
+    min-height: 700px;
+    padding: 60px 76px;
+  }
+
+  .doc-p {
+    margin: 0 0 11px 0;
+    text-align: left;
+  }
+
+  .doc-p.line-spacing-15 {
+    line-height: 1.65;
+  }
+
+  .pre-selected-italic {
+    background: #a8ccf7;
+    padding: 1px 0;
+  }
+
+  .pre-selected-italic.applied {
+    font-style: italic;
+  }
+
+  .all-selected-highlight {
+    background: #a8ccf7;
+  }
+
+  .highlight-replaced {
+    background: #fff176;
+    font-weight: 600;
+    padding: 0 2px;
+  }
+
+  .cursor-target {
+    display: inline-block;
+    padding: 0 3px;
+    margin: 0 1px;
+    border-radius: 2px;
+    cursor: text;
+    position: relative;
+  }
+
+  .cursor-target:hover {
+    background: #e6f0fc;
+  }
+
+  .blinking-caret {
+    display: inline-block;
+    width: 1.5px;
+    height: 15px;
+    background: #000000;
+    vertical-align: middle;
+    animation: blinkCaret 1s infinite;
+  }
+
+  @keyframes blinkCaret {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .page-break-indicator {
+    margin: 18px 0;
+    border-top: 1px dashed #6b8eb8;
+    text-align: center;
+    font-size: 10.5px;
+    color: #4a6b94;
+    line-height: 0.1em;
+  }
+
+  .page-break-indicator span {
+    background: #ffffff;
+    padding: 0 8px;
+  }
+
+  /* Barra di stato inferiore Word 2007 */
+  .word-statusbar {
+    height: 22px;
+    background: linear-gradient(180deg, #d7e6f7 0%, #b8d1f0 100%);
+    border-top: 1px solid #8db2e3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    font-size: 11px;
+    color: #15428b;
+  }
+
+  .status-left {
+    display: flex;
+    gap: 18px;
+  }
+
+  .status-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ================= FINESTRE DI DIALOGO CLASSICHE ================= */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 35, 65, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 400;
+  }
+
+  .modal-backdrop.show {
+    display: flex;
+  }
+
+  .classic-dialog {
+    background: #ece9d8;
+    border: 2px solid #2b6cb0;
+    border-radius: 5px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    color: #000;
+    font-size: 12px;
+  }
+
+  .classic-dialog-header {
+    background: linear-gradient(180deg, #3b82d6 0%, #1d57a3 100%);
+    color: #ffffff;
+    font-weight: 700;
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .classic-dialog-close {
+    background: #d94a38;
+    color: #fff;
+    border: 1px solid #fff;
+    width: 18px;
+    height: 18px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .classic-dialog-body {
+    padding: 14px;
+  }
+
+  .classic-btn {
+    background: linear-gradient(180deg, #ffffff 0%, #e1e1e1 100%);
+    border: 1px solid #707070;
+    border-radius: 3px;
+    padding: 4px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    min-width: 76px;
+  }
+
+  .classic-btn:hover {
+    border-color: #2b6cb0;
+    background: linear-gradient(180deg, #f2f8ff 0%, #d4e6fc 100%);
+  }
+
+  .classic-input, .classic-select {
+    border: 1px solid #7f9db9;
+    background: #ffffff;
+    padding: 4px 6px;
+    font-size: 12px;
+    width: 100%;
+    user-select: text;
+  }
+
+  /* Finestra Salva con nome */
+  .save-as-box {
+    width: 540px;
+  }
+
+  .explorer-address {
+    background: #ffffff;
+    border: 1px solid #7f9db9;
+    padding: 4px 8px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .explorer-split {
+    display: flex;
+    height: 190px;
+    border: 1px solid #7f9db9;
+    background: #ffffff;
+    margin-bottom: 10px;
+  }
+
+  .explorer-sidebar {
+    width: 150px;
+    background: #f0f4fa;
+    border-right: 1px solid #c5d4e8;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .exp-nav-item {
+    padding: 5px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .exp-nav-item.active, .exp-nav-item:hover {
+    background: #cfe3fa;
+    font-weight: 600;
+  }
+
+  .explorer-files {
+    flex: 1;
+    padding: 8px;
+  }
+
+  .folder-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .folder-item:hover {
+    background: #e5f1ff;
+    border-color: #99c7ff;
+  }
+
+  .save-form-grid {
+    display: grid;
+    grid-template-columns: 115px 1fr;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  /* Finestra Trova e sostituisci */
+  .find-replace-box {
+    width: 430px;
+  }
+
+  .fr-tabs {
+    display: flex;
+    border-bottom: 1px solid #999;
+    margin-bottom: 12px;
+    gap: 2px;
+  }
+
+  .fr-tab {
+    padding: 4px 12px;
+    border: 1px solid #999;
+    border-bottom: none;
+    background: #dcd8c8;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    cursor: pointer;
+  }
+
+  .fr-tab.active {
+    background: #ece9d8;
+    font-weight: 700;
+    position: relative;
+    top: 1px;
+  }
+
+  /* Finestra Paragrafo / Tabulazioni / Imposta pagina */
+  .tabs-dialog-box {
+    width: 350px;
+  }
+
+  /* ================= FINESTRA ESITO RISPOSTA ================= */
+  .result-modal-box {
+    width: 380px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 2px solid #2b6cb0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .result-modal-header {
+    padding: 14px 16px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+  }
+
+  .result-modal-header.correct {
+    background: linear-gradient(180deg, #2e9e5b 0%, #1e7842 100%);
+  }
+
+  .result-modal-header.wrong {
+    background: linear-gradient(180deg, #d94343 0%, #a82424 100%);
+  }
+
+  .result-modal-content {
+    padding: 18px 20px;
+    font-size: 14px;
+    color: #1e395b;
+    line-height: 1.45;
+  }
+
+  .result-modal-footer {
+    padding: 12px 16px;
+    background: #eef5fc;
+    border-top: 1px solid #cde0f5;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .result-action-btn {
+    background: linear-gradient(180deg, #2b6cb0 0%, #1a4980 100%);
+    color: #ffffff;
+    border: 1px solid #123663;
+    border-radius: 4px;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .result-action-btn.secondary {
+    background: linear-gradient(180deg, #ffffff 0%, #dcebfb 100%);
+    color: #15428b;
+    border-color: #6997cb;
+  }
+</style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIORE DOMANDE -->
+  <div class="exam-header">
+    <div class="exam-badge" id="qBadge">Domanda 1 / 8</div>
+    <div class="exam-question-text" id="qText"></div>
+    <div class="exam-controls">
+      <div class="exam-score" id="scoreBadge">Punteggio: 0 / 8</div>
+      <button class="exam-btn" onclick="resetCurrentQuestion()">Ripristina</button>
+    </div>
+  </div>
+
+  <!-- FINESTRA MICROSOFT WORD 2007 -->
+  <div class="word-window">
+    <!-- Pulsante Office -->
+    <div class="office-orb" id="officeOrbBtn" title="Pulsante Office">
+      <div class="office-squares">
+        <span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Barra del titolo -->
+    <div class="word-titlebar">
+      <div class="qat-bar">
+        <div class="qat-btn" title="Salva (Ctrl+S)" onclick="openSaveAsDialog()">💾</div>
+        <div class="qat-btn" title="Annulla" onclick="handleWrongAction('Annulla')">↩</div>
+        <div class="qat-btn" title="Ripeti" onclick="handleWrongAction('Ripeti')">↪</div>
+      </div>
+      <div class="word-doc-title" id="docTitleBar">Documento1 - Microsoft Word</div>
+      <div class="window-caption-btns">
+        <div class="win-cap-btn">_</div>
+        <div class="win-cap-btn">□</div>
+        <div class="win-cap-btn close">✕</div>
+      </div>
+    </div>
+
+    <!-- Menu Pulsante Office -->
+    <div class="office-menu" id="officeMenu">
+      <div class="office-menu-body">
+        <div class="office-menu-left">
+          <div class="om-item" onclick="handleWrongAction('Nuovo')">📄 Nuovo</div>
+          <div class="om-item" onclick="handleWrongAction('Apri')">📂 Apri</div>
+          <div class="om-item" onclick="openSaveAsDialog()">💾 Salva</div>
+          <div class="om-item" onclick="openSaveAsDialog()">📥 Salva con nome</div>
+          <div class="om-item" onclick="handleWrongAction('Stampa')">🖨️ Stampa</div>
+          <div class="om-item" onclick="handleWrongAction('Prepara')">📋 Prepara</div>
+          <div class="om-item" onclick="handleWrongAction('Invia')">✉️ Invia</div>
+          <div class="om-item" onclick="handleWrongAction('Chiudi')">❌ Chiudi</div>
+        </div>
+        <div class="office-menu-right">
+          <h4>Documenti recenti</h4>
+          <div style="padding:3px 0;">1 Appunti_Lezione.docx</div>
+          <div style="padding:3px 0;">2 Relazione_Informatica.docx</div>
+          <div style="padding:3px 0;">3 Modello_Esame.dotx</div>
+        </div>
+      </div>
+      <div class="office-menu-footer">
+        <button class="classic-btn" onclick="closeAllMenus()">Opzioni di Word</button>
+        <button class="classic-btn" onclick="closeAllMenus()">Esci da Word</button>
+      </div>
+    </div>
+
+    <!-- Schede Barra Multifunzione -->
+    <div class="ribbon-tabs">
+      <div class="ribbon-tab active" data-tab="home" onclick="switchRibbonTab('home')">Home</div>
+      <div class="ribbon-tab" data-tab="inserisci" onclick="switchRibbonTab('inserisci')">Inserisci</div>
+      <div class="ribbon-tab" data-tab="layout" onclick="switchRibbonTab('layout')">Layout di pagina</div>
+      <div class="ribbon-tab" data-tab="riferimenti" onclick="switchRibbonTab('riferimenti')">Riferimenti</div>
+      <div class="ribbon-tab" data-tab="lettere" onclick="switchRibbonTab('lettere')">Lettere</div>
+      <div class="ribbon-tab" data-tab="revisione" onclick="switchRibbonTab('revisione')">Revisione</div>
+      <div class="ribbon-tab" data-tab="visualizza" onclick="switchRibbonTab('visualizza')">Visualizza</div>
+    </div>
+
+    <!-- Corpo Barra Multifunzione -->
+    <div class="ribbon-body">
+
+      <!-- SCHEDA HOME -->
+      <div class="ribbon-panel active" id="panel-home">
+        <!-- Appunti -->
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Incolla')">
+              <span class="r-ico">📋</span>
+              <span>Incolla</span>
+            </div>
+            <div class="r-col">
+              <div class="r-btn-small" onclick="handleWrongAction('Taglia')">✂️ Taglia</div>
+              <div class="r-btn-small" onclick="handleWrongAction('Copia')">📄 Copia</div>
+              <div class="r-btn-small" onclick="handleWrongAction('Copia formato')">🖌️ Copia formato</div>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Appunti
+            <span class="dialog-launcher" title="Mostra riquadro Appunti di Office" onclick="handleWrongAction('Appunti')">↘</span>
+          </div>
+        </div>
+
+        <!-- Carattere -->
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-col">
+              <div class="r-row">
+                <div class="r-select-box" style="width:112px;" onclick="handleWrongAction('Tipo carattere')">Calibri <span>▾</span></div>
+                <div class="r-select-box" style="width:42px;" onclick="handleWrongAction('Dimensione carattere')">11 <span>▾</span></div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Ingrandisci carattere')">A▲</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Riduci carattere')">A▼</div>
+              </div>
+              <div class="r-row">
+                <div class="r-icon-btn" style="font-weight:bold;" onclick="handleWrongAction('Grassetto')">G</div>
+                <div class="r-icon-btn" id="btnItalic" style="font-style:italic; font-family:Georgia, serif; font-weight:bold;" title="Corsivo (Ctrl+I)" onclick="applyItalic()">C</div>
+                <div class="r-icon-btn" style="text-decoration:underline;" onclick="handleWrongAction('Sottolineato')">S</div>
+                <div class="r-icon-btn" style="text-decoration:line-through;" onclick="handleWrongAction('Barrato')">abc</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Pedice')">x₂</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Apice')">x²</div>
+                <div class="r-icon-btn" style="border-bottom:3px solid #ff0;" onclick="handleWrongAction('Evidenziatore')">ab</div>
+                <div class="r-icon-btn" style="color:#c00; font-weight:bold;" onclick="handleWrongAction('Colore carattere')">A</div>
+              </div>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Carattere
+            <span class="dialog-launcher" title="Carattere (Ctrl+D)" onclick="handleWrongAction('Finestra Carattere')">↘</span>
+          </div>
+        </div>
+
+        <!-- Paragrafo -->
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-col">
+              <div class="r-row">
+                <div class="r-icon-btn" onclick="handleWrongAction('Elenchi puntati')">•≡</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Elenchi numerati')">1≡</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Riduci rientro')">⇤</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Aumenta rientro')">⇥</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Ordina')">AZ↓</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Mostra tutto')">¶</div>
+              </div>
+              <div class="r-row">
+                <div class="r-icon-btn" onclick="handleWrongAction('Allinea a sinistra')">≡</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Centra')">═</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Allinea a destra')">≣</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Giustifica')">▤</div>
+                <div class="r-icon-btn" id="btnLineSpacing" title="Interlinea" style="width:34px;" onclick="toggleDropdown(event, 'ddLineSpacing')">↕≡▾</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Sfondo')">🪣</div>
+                <div class="r-icon-btn" onclick="handleWrongAction('Bordi')">田</div>
+              </div>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Paragrafo
+            <span class="dialog-launcher" title="Impostazioni paragrafo e tabulazioni" onclick="openParagraphDialog()">↘</span>
+          </div>
+        </div>
+
+        <!-- Stili -->
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div style="display:flex; gap:4px; background:#fff; border:1px solid #9ab9e0; padding:3px; border-radius:3px;">
+              <div style="padding:4px 8px; border:1px solid #d8a74a; background:#fff8e1; font-size:11px; text-align:center; cursor:pointer;" onclick="handleWrongAction('Stile Normale')">AaBbCc<br><b>Normale</b></div>
+              <div style="padding:4px 8px; border:1px solid #e1e8f2; font-size:11px; text-align:center; cursor:pointer;" onclick="handleWrongAction('Nessuna spaziatura')">AaBbCc<br>Nessuna sp.</div>
+              <div style="padding:4px 8px; border:1px solid #e1e8f2; font-size:11px; text-align:center; color:#2b6cb0; cursor:pointer;" onclick="handleWrongAction('Titolo 1')">AaBbCc<br><b>Titolo 1</b></div>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Stili
+            <span class="dialog-launcher" title="Riquadro Stili" onclick="handleWrongAction('Stili')">↘</span>
+          </div>
+        </div>
+
+        <!-- Modifica -->
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-col">
+              <div class="r-btn-small" onclick="openFindReplaceDialog('find')">🔍 Trova</div>
+              <div class="r-btn-small" onclick="openFindReplaceDialog('replace')">🔄 Sostituisci</div>
+              <div class="r-btn-small" onclick="selectAllDocument()">🖱️ Seleziona ▾</div>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Modifica
+            <span class="dialog-launcher" title="Opzioni modifica" onclick="openFindReplaceDialog('find')">↘</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCHEDA INSERISCI -->
+      <div class="ribbon-panel" id="panel-inserisci">
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-col">
+              <div class="r-btn-small" onclick="handleWrongAction('Frontespizio')">📘 Frontespizio</div>
+              <div class="r-btn-small" onclick="handleWrongAction('Pagina vuota')">📄 Pagina vuota</div>
+              <div class="r-btn-small" id="btnPageBreak" onclick="insertPageBreak()">📑 Interruzione di pagina</div>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Pagine
+            <span class="dialog-launcher" title="Opzioni pagine" onclick="handleWrongAction('Opzioni pagine')">↘</span>
+          </div>
+        </div>
+
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Tabella')">
+              <span class="r-ico">⊞</span>
+              <span>Tabella</span>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Tabelle
+            <span class="dialog-launcher" title="Inserisci tabella" onclick="handleWrongAction('Inserisci tabella')">↘</span>
+          </div>
+        </div>
+
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Immagine')">
+              <span class="r-ico">🖼️</span>
+              <span>Immagine</span>
+            </div>
+            <div class="r-btn-large" onclick="handleWrongAction('ClipArt')">
+              <span class="r-ico">🎨</span>
+              <span>ClipArt</span>
+            </div>
+            <div class="r-btn-large" onclick="handleWrongAction('Forme')">
+              <span class="r-ico">⬟</span>
+              <span>Forme</span>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Illustrazioni
+            <span class="dialog-launcher" title="Opzioni illustrazioni" onclick="handleWrongAction('Illustrazioni')">↘</span>
+          </div>
+        </div>
+
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Intestazione')">
+              <span class="r-ico">⬆️</span>
+              <span>Intestazione</span>
+            </div>
+            <div class="r-btn-large" onclick="handleWrongAction('Piè di pagina')">
+              <span class="r-ico">⬇️</span>
+              <span>Piè di pagina</span>
+            </div>
+            <div class="r-btn-large" onclick="handleWrongAction('Numero di pagina')">
+              <span class="r-ico">#️⃣</span>
+              <span>Numero di pagina</span>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Intestazione e piè di pagina
+            <span class="dialog-launcher" title="Opzioni intestazione e piè di pagina" onclick="handleWrongAction('Intestazione e piè di pagina')">↘</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCHEDA LAYOUT DI PAGINA -->
+      <div class="ribbon-panel" id="panel-layout">
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Temi')">
+              <span class="r-ico">🎭</span>
+              <span>Temi</span>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Temi
+            <span class="dialog-launcher" title="Opzioni temi" onclick="handleWrongAction('Temi')">↘</span>
+          </div>
+        </div>
+
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Margini')">
+              <span class="r-ico">📏</span>
+              <span>Margini</span>
+            </div>
+            <div class="r-btn-large" onclick="toggleDropdown(event, 'ddOrientation')">
+              <span class="r-ico">🔄</span>
+              <span>Orientamento ▾</span>
+            </div>
+            <div class="r-btn-large" onclick="toggleDropdown(event, 'ddPageSize')">
+              <span class="r-ico">📐</span>
+              <span>Dimensioni ▾</span>
+            </div>
+            <div class="r-btn-large" onclick="handleWrongAction('Colonne')">
+              <span class="r-ico">📰</span>
+              <span>Colonne</span>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Imposta pagina
+            <span class="dialog-launcher" title="Finestra Imposta pagina" onclick="openPageSetupDialog()">↘</span>
+          </div>
+        </div>
+
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Filigrana')">
+              <span class="r-ico">💧</span>
+              <span>Filigrana</span>
+            </div>
+            <div class="r-btn-large" onclick="handleWrongAction('Colore pagina')">
+              <span class="r-ico">🎨</span>
+              <span>Colore pagina</span>
+            </div>
+            <div class="r-btn-large" onclick="handleWrongAction('Bordi pagina')">
+              <span class="r-ico">🖼️</span>
+              <span>Bordi pagina</span>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Sfondo pagina
+            <span class="dialog-launcher" title="Opzioni sfondo pagina" onclick="handleWrongAction('Sfondo pagina')">↘</span>
+          </div>
+        </div>
+
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-col" style="font-size:11px; color:#15428b;">
+              <div>Rientro Sx: 0 cm</div>
+              <div>Rientro Dx: 0 cm</div>
+            </div>
+          </div>
+          <div class="ribbon-group-footer">
+            Paragrafo
+            <span class="dialog-launcher" title="Impostazioni paragrafo e tabulazioni" onclick="openParagraphDialog()">↘</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALTRE SCHEDE (Riferimenti, Lettere, Revisione, Visualizza) -->
+      <div class="ribbon-panel" id="panel-riferimenti">
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Sommario')"><span class="r-ico">📑</span><span>Sommario</span></div>
+            <div class="r-btn-large" onclick="handleWrongAction('Inserisci nota')"><span class="r-ico">📝</span><span>Inserisci nota</span></div>
+          </div>
+          <div class="ribbon-group-footer">
+            Sommario e Note
+            <span class="dialog-launcher" title="Note a piè di pagina" onclick="handleWrongAction('Note')">↘</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ribbon-panel" id="panel-lettere">
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Buste')"><span class="r-ico">✉️</span><span>Buste</span></div>
+            <div class="r-btn-large" onclick="handleWrongAction('Etichette')"><span class="r-ico">🏷️</span><span>Etichette</span></div>
+            <div class="r-btn-large" onclick="handleWrongAction('Stampa unione')"><span class="r-ico">👥</span><span>Stampa unione</span></div>
+          </div>
+          <div class="ribbon-group-footer">
+            Crea e Stampa unione
+            <span class="dialog-launcher" title="Opzioni stampa unione" onclick="handleWrongAction('Stampa unione')">↘</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ribbon-panel" id="panel-revisione">
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large" onclick="handleWrongAction('Controllo ortografia')"><span class="r-ico">✔️</span><span>Controllo ortografia</span></div>
+            <div class="r-btn-large" onclick="handleWrongAction('Conteggio parole')"><span class="r-ico">🔢</span><span>Conteggio parole</span></div>
+            <div class="r-btn-large" onclick="handleWrongAction('Nuovo commento')"><span class="r-ico">💬</span><span>Nuovo commento</span></div>
+          </div>
+          <div class="ribbon-group-footer">
+            Strumenti di correzione e Commenti
+            <span class="dialog-launcher" title="Opzioni revisione" onclick="handleWrongAction('Revisione')">↘</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ribbon-panel" id="panel-visualizza">
+        <div class="ribbon-group">
+          <div class="ribbon-group-content">
+            <div class="r-btn-large active-state" onclick="handleWrongAction('Layout di stampa')"><span class="r-ico">📄</span><span>Layout di stampa</span></div>
+            <div class="r-btn-large" onclick="handleWrongAction('Lettura a schermo intero')"><span class="r-ico">📖</span><span>Lettura a schermo intero</span></div>
+            <div class="r-btn-large" onclick="handleWrongAction('Zoom')"><span class="r-ico">🔎</span><span>Zoom</span></div>
+          </div>
+          <div class="ribbon-group-footer">
+            Visualizzazioni documento e Zoom
+            <span class="dialog-launcher" title="Opzioni visualizzazione" onclick="handleWrongAction('Visualizzazione')">↘</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Menu a tendina contestuali -->
+    <div class="dropdown-menu" id="ddLineSpacing">
+      <div class="dd-item" onclick="setLineSpacing('1.0')"><span>1,0</span></div>
+      <div class="dd-item" onclick="setLineSpacing('1.15')"><span>1,15</span></div>
+      <div class="dd-item" onclick="setLineSpacing('1.5')"><span>1,5</span></div>
+      <div class="dd-item" onclick="setLineSpacing('2.0')"><span>2,0</span></div>
+      <div class="dd-item" onclick="setLineSpacing('2.5')"><span>2,5</span></div>
+      <div class="dd-sep"></div>
+      <div class="dd-item" onclick="openParagraphDialog()"><span>Opzioni interlinea...</span></div>
+    </div>
+
+    <div class="dropdown-menu" id="ddOrientation">
+      <div class="dd-item" onclick="setPageOrientation('portrait')"><span>📄 Verticale</span></div>
+      <div class="dd-item" onclick="setPageOrientation('landscape')"><span>🖼️ Orizzontale</span></div>
+    </div>
+
+    <div class="dropdown-menu" id="ddPageSize">
+      <div class="dd-item" onclick="setPageSize('letter')"><span>Letter (21,59 cm x 27,94 cm)</span></div>
+      <div class="dd-item" onclick="setPageSize('a4')"><span>A4 (21 cm x 29,7 cm)</span></div>
+      <div class="dd-item" onclick="setPageSize('a3')"><span>A3 (29,7 cm x 42 cm)</span></div>
+      <div class="dd-item" onclick="setPageSize('a5')"><span>A5 (14,8 cm x 21 cm)</span></div>
+    </div>
+
+    <!-- AREA DI LAVORO CON RIGHELLI E FOGLIO -->
+    <div class="workspace-container">
+      <div class="top-ruler-row">
+        <div class="tab-selector-box" id="tabSelectorIcon" title="Tabulazione a sinistra" onclick="cycleTabSelector()">L</div>
+        <div class="horizontal-ruler-wrap">
+          <div class="horizontal-ruler" id="hRuler" style="width:660px;" onclick="handleRulerClick(event)">
+            <div class="ruler-margin-left" style="width:68px;"></div>
+            <div class="ruler-active-area" id="hRulerActive"></div>
+            <div class="ruler-margin-right" style="width:68px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-main-row">
+        <div class="vertical-ruler-col">
+          <div class="vertical-ruler">
+            <div class="vr-margin"></div>
+            <div class="vr-body"></div>
+            <div class="vr-margin"></div>
+          </div>
+        </div>
+
+        <div class="document-scroll-area" id="docScrollArea">
+          <div class="word-page size-a4 orient-portrait" id="wordPage"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra di stato Word 2007 -->
+    <div class="word-statusbar">
+      <div class="status-left">
+        <span id="statusPageCount">Pagina: 1 di 1</span>
+        <span>Parole: 168</span>
+        <span>Italiano (Italia)</span>
+      </div>
+      <div class="status-right">
+        <span>100%</span>
+        <span>⊖ ━━━╋━━━ ⊕</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FINESTRA SALVA CON NOME (DOMANDA 3) ================= -->
+  <div class="modal-backdrop" id="saveAsModal">
+    <div class="classic-dialog save-as-box">
+      <div class="classic-dialog-header">
+        <span>Salva con nome</span>
+        <span class="classic-dialog-close" onclick="closeModal('saveAsModal')">✕</span>
+      </div>
+      <div class="classic-dialog-body">
+        <div class="explorer-address" id="explorerPathBar">
+          <span>📁</span>
+          <span id="currentPathText">Questo PC &gt; Desktop</span>
+        </div>
+        <div class="explorer-split">
+          <div class="explorer-sidebar">
+            <div class="exp-nav-item" id="navDesktop" onclick="navigateFolder('Desktop')">🖥️ Desktop</div>
+            <div class="exp-nav-item" id="navDocumenti" onclick="navigateFolder('Documenti')">📁 Documenti</div>
+            <div class="exp-nav-item" id="navDownload" onclick="navigateFolder('Download')">⬇️ Download</div>
+            <div class="exp-nav-item" id="navImmagini" onclick="navigateFolder('Immagini')">🖼️ Immagini</div>
+          </div>
+          <div class="explorer-files" id="explorerFolderView"></div>
+        </div>
+
+        <div class="save-form-grid">
+          <label for="saveFileName">Nome file:</label>
+          <input type="text" id="saveFileName" class="classic-input" value="Documento1">
+
+          <label for="saveFileType">Salva come:</label>
+          <select id="saveFileType" class="classic-select">
+            <option value="docx">Documento di Word (*.docx)</option>
+            <option value="docm">Documento con attivazione macro di Word (*.docm)</option>
+            <option value="doc">Documento di Word 97-2003 (*.doc)</option>
+            <option value="dotx">Modello di Word (*.dotx)</option>
+            <option value="pdf">PDF (*.pdf)</option>
+            <option value="rtf">Formato RTF (*.rtf)</option>
+          </select>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="classic-btn" onclick="submitSaveAs()">Salva</button>
+          <button class="classic-btn" onclick="closeModal('saveAsModal')">Annulla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FINESTRA TROVA E SOSTITUISCI (DOMANDA 4) ================= -->
+  <div class="modal-backdrop" id="findReplaceModal">
+    <div class="classic-dialog find-replace-box">
+      <div class="classic-dialog-header">
+        <span>Trova e sostituisci</span>
+        <span class="classic-dialog-close" onclick="closeModal('findReplaceModal')">✕</span>
+      </div>
+      <div class="classic-dialog-body">
+        <div class="fr-tabs">
+          <div class="fr-tab" id="tabFind" onclick="switchFRTab('find')">Trova</div>
+          <div class="fr-tab active" id="tabReplace" onclick="switchFRTab('replace')">Sostituisci</div>
+          <div class="fr-tab" id="tabGoto" onclick="switchFRTab('goto')">Vai</div>
+        </div>
+
+        <div class="save-form-grid">
+          <label for="findInput">Trova:</label>
+          <input type="text" id="findInput" class="classic-input" placeholder="">
+
+          <label for="replaceInput" id="replaceLabel">Sostituisci con:</label>
+          <input type="text" id="replaceInput" class="classic-input" placeholder="">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:14px;">
+          <button class="classic-btn" id="btnReplaceOne" onclick="executeReplace(false)">Sostituisci</button>
+          <button class="classic-btn" id="btnReplaceAll" onclick="executeReplace(true)">Sostituisci tutto</button>
+          <button class="classic-btn" onclick="closeModal('findReplaceModal')">Chiudi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FINESTRA PARAGRAFO / TABULAZIONI (DOMANDA 5 e 6) ================= -->
+  <div class="modal-backdrop" id="paragraphModal">
+    <div class="classic-dialog tabs-dialog-box">
+      <div class="classic-dialog-header">
+        <span>Paragrafo e Tabulazioni</span>
+        <span class="classic-dialog-close" onclick="closeModal('paragraphModal')">✕</span>
+      </div>
+      <div class="classic-dialog-body">
+        <div style="margin-bottom:10px; font-weight:600; color:#15428b;">Spaziatura</div>
+        <div class="save-form-grid">
+          <label for="dlgLineSpacing">Interlinea:</label>
+          <select id="dlgLineSpacing" class="classic-select">
+            <option value="1.0">Singola (1,0)</option>
+            <option value="1.15" selected>Multipla (1,15)</option>
+            <option value="1.5">1,5 righe</option>
+            <option value="2.0">Doppia (2,0)</option>
+          </select>
+        </div>
+
+        <div style="margin:12px 0 8px 0; font-weight:600; color:#15428b;">Tabulazioni</div>
+        <div class="save-form-grid">
+          <label for="dlgTabPos">Posizione (cm):</label>
+          <input type="text" id="dlgTabPos" class="classic-input" placeholder="es. 3">
+
+          <label for="dlgTabAlign">Allineamento:</label>
+          <select id="dlgTabAlign" class="classic-select">
+            <option value="left" selected>A sinistra</option>
+            <option value="center">Al centro</option>
+            <option value="right">A destra</option>
+            <option value="decimal">Decimale</option>
+          </select>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+          <button class="classic-btn" onclick="applyParagraphAndTabs()">OK</button>
+          <button class="classic-btn" onclick="closeModal('paragraphModal')">Annulla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FINESTRA IMPOSTA PAGINA (DOMANDA 7 e 8) ================= -->
+  <div class="modal-backdrop" id="pageSetupModal">
+    <div class="classic-dialog tabs-dialog-box">
+      <div class="classic-dialog-header">
+        <span>Imposta pagina</span>
+        <span class="classic-dialog-close" onclick="closeModal('pageSetupModal')">✕</span>
+      </div>
+      <div class="classic-dialog-body">
+        <div style="margin-bottom:8px; font-weight:600; color:#15428b;">Orientamento</div>
+        <div class="save-form-grid">
+          <label for="dlgOrientation">Orientamento:</label>
+          <select id="dlgOrientation" class="classic-select">
+            <option value="portrait">Verticale</option>
+            <option value="landscape">Orizzontale</option>
+          </select>
+        </div>
+
+        <div style="margin:12px 0 8px 0; font-weight:600; color:#15428b;">Carta</div>
+        <div class="save-form-grid">
+          <label for="dlgPaperSize">Formato carta:</label>
+          <select id="dlgPaperSize" class="classic-select">
+            <option value="letter">Letter</option>
+            <option value="a4">A4</option>
+            <option value="a3">A3</option>
+            <option value="a5">A5</option>
+          </select>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+          <button class="classic-btn" onclick="applyPageSetup()">OK</button>
+          <button class="classic-btn" onclick="closeModal('pageSetupModal')">Annulla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FINESTRA ESITO RISPOSTA ================= -->
+  <div class="modal-backdrop" id="resultModal">
+    <div class="result-modal-box">
+      <div class="result-modal-header" id="resultHeader">Risposta corretta</div>
+      <div class="result-modal-content" id="resultMessage"></div>
+      <div class="result-modal-footer" id="resultFooter"></div>
+    </div>
+  </div>
+
+<script>
+  const QUESTIONS = [
+    {
+      id: 1,
+      text: "1. Applica lo stile corsivo alla porzione di testo già selezionata nel documento."
+    },
+    {
+      id: 2,
+      text: "2. Posiziona il cursore alla fine della frase «Dal punto di vista storico, l'informatica ha attraversato una trasformazione rapidissima.» e inserisci un'interruzione di pagina."
+    },
+    {
+      id: 3,
+      text: "3. Salva il documento con il nome ESAME in formato modello di Word (.dotx) all'interno della cartella ICDL contenuta nella cartella Documenti."
+    },
+    {
+      id: 4,
+      text: "4. Trova tutte le occorrenze della parola «informatica» nel testo e sostituiscile con la parola «ICDL»."
+    },
+    {
+      id: 5,
+      text: "5. Applica a tutto il documento un'interlinea di 1,5."
+    },
+    {
+      id: 6,
+      text: "6. Applica una tabulazione a sinistra di 3 cm."
+    },
+    {
+      id: 7,
+      text: "7. Cambia l'orientamento della pagina da verticale ad orizzontale."
+    },
+    {
+      id: 8,
+      text: "8. Cambia il formato (dimensioni) del documento in A3."
+    }
+  ];
+
+  // Supporto parametro URL ?q=1..8 per incorporamento singola domanda su Jotform
+  const urlParams = new URLSearchParams(window.location.search);
+  const singleQuestionParam = parseInt(urlParams.get("q"), 10);
+  const isSingleQuestionMode = singleQuestionParam >= 1 && singleQuestionParam <= 8;
+
+  let currentIndex = isSingleQuestionMode ? (singleQuestionParam - 1) : 0;
+  let score = 0;
+  let answeredQuestions = new Set();
+
+  let docState = {
+    italicApplied: false,
+    cursorPlacedForBreak: false,
+    pageBreakInserted: false,
+    allSelected: false,
+    lineSpacing: "1.15",
+    tabLeft3cm: false,
+    tabType: "left",
+    orientation: "portrait",
+    pageSize: "a4",
+    replacedInformatica: false,
+    currentFolder: "Desktop"
+  };
+
+  function init() {
+    buildHorizontalRuler();
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = QUESTIONS[currentIndex];
+    document.getElementById("qBadge").textContent = `Domanda ${q.id} / ${QUESTIONS.length}`;
+    document.getElementById("qText").textContent = q.text;
+    document.getElementById("scoreBadge").textContent = `Punteggio: ${score} / ${QUESTIONS.length}`;
+
+    docState = {
+      italicApplied: false,
+      cursorPlacedForBreak: false,
+      pageBreakInserted: false,
+      allSelected: (q.id === 5),
+      lineSpacing: "1.15",
+      tabLeft3cm: false,
+      tabType: "left",
+      orientation: "portrait",
+      pageSize: "a4",
+      replacedInformatica: false,
+      currentFolder: "Desktop"
+    };
+
+    document.getElementById("docTitleBar").textContent = "Documento1 - Microsoft Word";
+    document.getElementById("btnItalic").classList.remove("active-state");
+    document.getElementById("tabSelectorIcon").textContent = "L";
+
+    updatePageClasses();
+    renderDocumentContent();
+    buildHorizontalRuler();
+  }
+
+  function resetCurrentQuestion() {
+    closeAllMenus();
+    renderQuestion();
+  }
+
+  function renderDocumentContent() {
+    const qId = QUESTIONS[currentIndex].id;
+    const pageEl = document.getElementById("wordPage");
+    const spacingClass = docState.lineSpacing === "1.5" ? "line-spacing-15" : "";
+    const allSelClass = docState.allSelected ? "all-selected-highlight" : "";
+
+    let p1Html = `L’informatica è la disciplina che studia l’elaborazione automatica delle informazioni, occupandosi di come i dati vengono rappresentati, memorizzati, trasmessi e trasformati tramite algoritmi e calcolatori. Il termine nasce dalla fusione delle parole informazione e automatica e trova le sue fondamenta teoriche negli studi di pionieri come Alan Turing e John von Neumann. Alla base di ogni sistema informatico vi è l'integrazione tra hardware, ovvero le componenti fisiche come il processore e la memoria, e software, cioè l'insieme dei programmi e dei sistemi operativi che forniscono le istruzioni necessarie per eseguire i calcoli.`;
+
+    let p2FirstSentence = `Dal punto di vista storico, l'informatica ha attraversato una trasformazione rapidissima.`;
+    let p2Rest = `Negli anni Quaranta del Novecento i primi calcolatori elettronici erano macchine gigantesche a valvole, destinate quasi esclusivamente ad applicazioni scientifiche e militari. Con l'invenzione del microprocessore tra gli anni Settanta e Ottanta, i computer sono diventati sempre più piccoli ed economici, dando inizio all'era del personal computer e entrando nelle aziende e nelle case. A partire dagli anni Novanta, infine, l'avvento di Internet e del World Wide Web ha trasformato il computer da semplice strumento di calcolo a mezzo globale di comunicazione e condivisione.`;
+
+    if (qId === 1) {
+      const cls = docState.italicApplied ? "pre-selected-italic applied" : "pre-selected-italic";
+      p1Html = p1Html.replace(
+        "l’elaborazione automatica delle informazioni",
+        `<span class="${cls}">l’elaborazione automatica delle informazioni</span>`
+      );
+    }
+
+    if (docState.replacedInformatica) {
+      p1Html = p1Html.replace(/informatica/g, '<span class="highlight-replaced">ICDL</span>');
+      p2FirstSentence = p2FirstSentence.replace(/informatica/g, '<span class="highlight-replaced">ICDL</span>');
+    }
+
+    let p2Html = "";
+    if (qId === 2) {
+      const caretHtml = docState.cursorPlacedForBreak ? `<span class="blinking-caret"></span>` : "";
+      const breakHtml = docState.pageBreakInserted
+        ? `<div class="page-break-indicator"><span>Interruzione di pagina</span></div>`
+        : " ";
+      p2Html = `${p2FirstSentence}<span class="cursor-target" title="Clicca qui per posizionare il cursore" onclick="placeCursorAtTarget()">${caretHtml}</span>${breakHtml}${p2Rest}`;
+    } else {
+      p2Html = `${p2FirstSentence} ${p2Rest}`;
+    }
+
+    pageEl.innerHTML = `
+      <p class="doc-p ${spacingClass} ${allSelClass}">${p1Html}</p>
+      <p class="doc-p ${spacingClass} ${allSelClass}">${p2Html}</p>
+    `;
+
+    document.getElementById("statusPageCount").textContent = docState.pageBreakInserted
+      ? "Pagina: 2 di 2"
+      : "Pagina: 1 di 1";
+  }
+
+  function updatePageClasses() {
+    const pageEl = document.getElementById("wordPage");
+    pageEl.className = `word-page size-${docState.pageSize} orient-${docState.orientation}`;
+  }
+
+  /* ================= RIGHELLO ORIZZONTALE ================= */
+  function buildHorizontalRuler() {
+    const ruler = document.getElementById("hRuler");
+    const active = document.getElementById("hRulerActive");
+    const pageWidth = docState.orientation === "landscape" ? 880 : 660;
+    ruler.style.width = pageWidth + "px";
+
+    active.innerHTML = "";
+    const maxCm = docState.orientation === "landscape" ? 24 : 17;
+    const activeWidth = pageWidth - 136;
+    const pxPerCm = activeWidth / maxCm;
+
+    for (let cm = 1; cm < maxCm; cm++) {
+      const x = cm * pxPerCm;
+      const lbl = document.createElement("span");
+      lbl.className = "ruler-tick-label";
+      lbl.style.left = x + "px";
+      lbl.textContent = cm;
+      active.appendChild(lbl);
+
+      const halfTick = document.createElement("span");
+      halfTick.className = "ruler-tick";
+      halfTick.style.left = (x - pxPerCm / 2) + "px";
+      active.appendChild(halfTick);
+    }
+
+    if (docState.tabLeft3cm) {
+      const marker = document.createElement("span");
+      marker.className = "tab-stop-marker";
+      marker.style.left = (3 * pxPerCm) + "px";
+      marker.textContent = "L";
+      active.appendChild(marker);
+    }
+  }
+
+  function cycleTabSelector() {
+    const types = [
+      { id: "left", symbol: "L", title: "Tabulazione a sinistra" },
+      { id: "center", symbol: "⊥", title: "Tabulazione centrata" },
+      { id: "right", symbol: "⅃", title: "Tabulazione a destra" }
+    ];
+    const nextIdx = (types.findIndex(t => t.id === docState.tabType) + 1) % types.length;
+    docState.tabType = types[nextIdx].id;
+    const icon = document.getElementById("tabSelectorIcon");
+    icon.textContent = types[nextIdx].symbol;
+    icon.title = types[nextIdx].title;
+  }
+
+  function handleRulerClick(e) {
+    const qId = QUESTIONS[currentIndex].id;
+    const active = document.getElementById("hRulerActive");
+    const rect = active.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const maxCm = docState.orientation === "landscape" ? 24 : 17;
+    const pxPerCm = rect.width / maxCm;
+    const clickedCm = clickX / pxPerCm;
+
+    if (qId === 6 && docState.tabType === "left" && Math.abs(clickedCm - 3) <= 0.45) {
+      docState.tabLeft3cm = true;
+      buildHorizontalRuler();
+      handleCorrectAction("Hai impostato correttamente la tabulazione a sinistra a 3 cm sul righello.");
+    } else {
+      handleWrongAction("Posizione o tipo di tabulazione sul righello non corretti.");
+    }
+  }
+
+  /* ================= NAVIGAZIONE RIBBON & MENU ================= */
+  function switchRibbonTab(tabName) {
+    closeAllMenus();
+    document.querySelectorAll(".ribbon-tab").forEach(t => {
+      t.classList.toggle("active", t.dataset.tab === tabName);
+    });
+    document.querySelectorAll(".ribbon-panel").forEach(p => {
+      p.classList.toggle("active", p.id === "panel-" + tabName);
+    });
+  }
+
+  document.getElementById("officeOrbBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const menu = document.getElementById("officeMenu");
+    const wasOpen = menu.classList.contains("show");
+    closeAllMenus();
+    if (!wasOpen) menu.classList.add("show");
+  });
+
+  function toggleDropdown(e, id) {
+    e.stopPropagation();
+    const el = document.getElementById(id);
+    const wasOpen = el.classList.contains("show");
+    closeAllMenus();
+    if (!wasOpen) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      el.style.left = rect.left + "px";
+      el.style.top = (rect.bottom + 2) + "px";
+      el.classList.add("show");
+    }
+  }
+
+  function closeAllMenus() {
+    document.querySelectorAll(".dropdown-menu, .office-menu").forEach(m => m.classList.remove("show"));
+  }
+
+  document.addEventListener("click", () => closeAllMenus());
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove("show");
+  }
+
+  /* ================= LOGICA DEI SINGOLI ESERCIZI ================= */
+
+  // Esercizio 1: Corsivo
+  function applyItalic() {
+    const qId = QUESTIONS[currentIndex].id;
+    if (qId === 1) {
+      docState.italicApplied = true;
+      document.getElementById("btnItalic").classList.add("active-state");
+      renderDocumentContent();
+      handleCorrectAction("Hai applicato correttamente lo stile corsivo al testo selezionato.");
+    } else {
+      handleWrongAction("Il comando Corsivo non è richiesto in questo esercizio.");
+    }
+  }
+
+  // Esercizio 2: Posizionamento cursore + Interruzione di pagina
+  function placeCursorAtTarget() {
+    docState.cursorPlacedForBreak = true;
+    renderDocumentContent();
+  }
+
+  function insertPageBreak() {
+    const qId = QUESTIONS[currentIndex].id;
+    if (qId === 2) {
+      if (!docState.cursorPlacedForBreak) {
+        handleWrongAction("Devi prima posizionare il cursore alla fine della frase indicata nella consegna.");
+        return;
+      }
+      docState.pageBreakInserted = true;
+      renderDocumentContent();
+      handleCorrectAction("Hai posizionato il cursore nel punto esatto e inserito l'interruzione di pagina.");
+    } else {
+      handleWrongAction("L'interruzione di pagina non è richiesta in questo esercizio.");
+    }
+  }
+
+  // Esercizio 3: Salva con nome ESAME.dotx in Documenti > ICDL
+  function openSaveAsDialog() {
+    closeAllMenus();
+    navigateFolder("Desktop");
+    document.getElementById("saveFileName").value = "Documento1";
+    document.getElementById("saveFileType").value = "docx";
+    document.getElementById("saveAsModal").classList.add("show");
+  }
+
+  function navigateFolder(folderName) {
+    docState.currentFolder = folderName;
+    document.querySelectorAll(".exp-nav-item").forEach(el => el.classList.remove("active"));
+    const navMap = {
+      "Desktop": "navDesktop",
+      "Documenti": "navDocumenti",
+      "ICDL": "navDocumenti",
+      "Download": "navDownload",
+      "Immagini": "navImmagini"
+    };
+    if (navMap[folderName]) {
+      document.getElementById(navMap[folderName]).classList.add("active");
+    }
+
+    const pathText = document.getElementById("currentPathText");
+    const folderView = document.getElementById("explorerFolderView");
+
+    if (folderName === "Documenti") {
+      pathText.textContent = "Questo PC > Documenti";
+      folderView.innerHTML = `
+        <div class="folder-item" onclick="navigateFolder('ICDL')">
+          <span>📁</span><span><b>ICDL</b> (Cartella di file)</span>
+        </div>
+        <div class="folder-item" onclick="handleWrongFolder()">
+          <span>📁</span><span>Personale</span>
+        </div>
+      `;
+    } else if (folderName === "ICDL") {
+      pathText.textContent = "Questo PC > Documenti > ICDL";
+      folderView.innerHTML = `
+        <div style="color:#666; font-style:italic; padding:8px;">Cartella ICDL aperta (nessun file presente)</div>
+      `;
+    } else {
+      pathText.textContent = `Questo PC > ${folderName}`;
+      folderView.innerHTML = `
+        <div style="color:#666; font-style:italic; padding:8px;">Cartella ${folderName}</div>
+      `;
+    }
+  }
+
+  function handleWrongFolder() {
+    document.getElementById("currentPathText").textContent = "Questo PC > Documenti > Personale";
+    docState.currentFolder = "Personale";
+    document.getElementById("explorerFolderView").innerHTML = "";
+  }
+
+  function submitSaveAs() {
+    const qId = QUESTIONS[currentIndex].id;
+    const rawName = document.getElementById("saveFileName").value.trim();
+    const cleanName = rawName.replace(/\.dotx$/i, "");
+    const fileType = document.getElementById("saveFileType").value;
+
+    closeModal("saveAsModal");
+
+    if (
+      qId === 3 &&
+      docState.currentFolder === "ICDL" &&
+      cleanName === "ESAME" &&
+      fileType === "dotx"
+    ) {
+      document.getElementById("docTitleBar").textContent = "ESAME.dotx - Microsoft Word";
+      handleCorrectAction("Hai salvato correttamente il modello ESAME.dotx nella cartella Documenti > ICDL.");
+    } else {
+      handleWrongAction("Percorso cartella, nome file o formato (.dotx) non corrispondono a quanto richiesto.");
+    }
+  }
+
+  // Esercizio 4: Trova e sostituisci informatica -> ICDL
+  function openFindReplaceDialog(mode) {
+    closeAllMenus();
+    switchFRTab(mode);
+    document.getElementById("findInput").value = "";
+    document.getElementById("replaceInput").value = "";
+    document.getElementById("findReplaceModal").classList.add("show");
+  }
+
+  function switchFRTab(mode) {
+    document.getElementById("tabFind").classList.toggle("active", mode === "find");
+    document.getElementById("tabReplace").classList.toggle("active", mode === "replace");
+    document.getElementById("tabGoto").classList.toggle("active", mode === "goto");
+  }
+
+  function executeReplace(replaceAll) {
+    const qId = QUESTIONS[currentIndex].id;
+    const findVal = document.getElementById("findInput").value.trim();
+    const replaceVal = document.getElementById("replaceInput").value.trim();
+
+    closeModal("findReplaceModal");
+
+    if (
+      qId === 4 &&
+      replaceAll &&
+      findVal.toLowerCase() === "informatica" &&
+      replaceVal === "ICDL"
+    ) {
+      docState.replacedInformatica = true;
+      renderDocumentContent();
+      handleCorrectAction("Tutte le occorrenze della parola «informatica» sono state sostituite con «ICDL».");
+    } else {
+      handleWrongAction("Parametri di ricerca/sostituzione errati oppure comando non applicato a tutte le occorrenze.");
+    }
+  }
+
+  // Esercizio 5: Interlinea 1,5
+  function selectAllDocument() {
+    closeAllMenus();
+    docState.allSelected = true;
+    renderDocumentContent();
+  }
+
+  function setLineSpacing(val) {
+    closeAllMenus();
+    const qId = QUESTIONS[currentIndex].id;
+    if (qId === 5 && val === "1.5") {
+      docState.lineSpacing = "1.5";
+      renderDocumentContent();
+      handleCorrectAction("Hai impostato correttamente l'interlinea a 1,5 su tutto il documento.");
+    } else {
+      handleWrongAction("Valore di interlinea non corretto o comando non richiesto.");
+    }
+  }
+
+  // Esercizio 5 & 6 tramite Finestra Paragrafo
+  function openParagraphDialog() {
+    closeAllMenus();
+    document.getElementById("dlgLineSpacing").value = docState.lineSpacing;
+    document.getElementById("dlgTabPos").value = "";
+    document.getElementById("dlgTabAlign").value = "left";
+    document.getElementById("paragraphModal").classList.add("show");
+  }
+
+  function applyParagraphAndTabs() {
+    const qId = QUESTIONS[currentIndex].id;
+    const spacingVal = document.getElementById("dlgLineSpacing").value;
+    const tabPosRaw = document.getElementById("dlgTabPos").value.trim().replace(",", ".");
+    const tabAlign = document.getElementById("dlgTabAlign").value;
+
+    closeModal("paragraphModal");
+
+    if (qId === 5 && spacingVal === "1.5") {
+      docState.lineSpacing = "1.5";
+      renderDocumentContent();
+      handleCorrectAction("Hai applicato correttamente l'interlinea di 1,5 a tutto il documento.");
+      return;
+    }
+
+    if (qId === 6 && parseFloat(tabPosRaw) === 3 && tabAlign === "left") {
+      docState.tabLeft3cm = true;
+      buildHorizontalRuler();
+      handleCorrectAction("Hai impostato correttamente una tabulazione a sinistra di 3 cm.");
+      return;
+    }
+
+    handleWrongAction("I parametri inseriti nella finestra Paragrafo e Tabulazioni non sono corretti.");
+  }
+
+  // Finestra Imposta pagina (Esercizio 7 e 8 anche da freccetta)
+  function openPageSetupDialog() {
+    closeAllMenus();
+    document.getElementById("dlgOrientation").value = docState.orientation;
+    document.getElementById("dlgPaperSize").value = docState.pageSize;
+    document.getElementById("pageSetupModal").classList.add("show");
+  }
+
+  function applyPageSetup() {
+    const qId = QUESTIONS[currentIndex].id;
+    const orient = document.getElementById("dlgOrientation").value;
+    const size = document.getElementById("dlgPaperSize").value;
+    closeModal("pageSetupModal");
+
+    if (qId === 7 && orient === "landscape") {
+      setPageOrientation("landscape");
+      return;
+    }
+
+    if (qId === 8 && size === "a3") {
+      setPageSize("a3");
+      return;
+    }
+
+    handleWrongAction("Le impostazioni di pagina selezionate non corrispondono alla consegna.");
+  }
+
+  // Esercizio 7: Orientamento Orizzontale
+  function setPageOrientation(orient) {
+    closeAllMenus();
+    const qId = QUESTIONS[currentIndex].id;
+    if (qId === 7 && orient === "landscape") {
+      docState.orientation = "landscape";
+      updatePageClasses();
+      buildHorizontalRuler();
+      handleCorrectAction("Hai modificato correttamente l'orientamento della pagina da verticale ad orizzontale.");
+    } else {
+      handleWrongAction("Orientamento selezionato non corretto o comando non richiesto.");
+    }
+  }
+
+  // Esercizio 8: Formato A3
+  function setPageSize(size) {
+    closeAllMenus();
+    const qId = QUESTIONS[currentIndex].id;
+    if (qId === 8 && size === "a3") {
+      docState.pageSize = "a3";
+      updatePageClasses();
+      handleCorrectAction("Hai modificato correttamente il formato del documento in A3.");
+    } else {
+      handleWrongAction("Formato pagina non corretto o comando non richiesto.");
+    }
+  }
+
+  /* ================= GESTIONE FEEDBACK RISPOSTA ================= */
+  function handleCorrectAction(detailMsg) {
+    const q = QUESTIONS[currentIndex];
+    if (!answeredQuestions.has(q.id)) {
+      answeredQuestions.add(q.id);
+      score++;
+      document.getElementById("scoreBadge").textContent = `Punteggio: ${score} / ${QUESTIONS.length}`;
+    }
+
+    try {
+      window.parent.postMessage({
+        type: "WORD2007_TEST_RESULT",
+        question: q.id,
+        status: "corretta",
+        score: score
+      }, "*");
+    } catch (e) {}
+
+    showResultModal(true, detailMsg);
+  }
+
+  function handleWrongAction(detailMsg) {
+    const q = QUESTIONS[currentIndex];
+    try {
+      window.parent.postMessage({
+        type: "WORD2007_TEST_RESULT",
+        question: q.id,
+        status: "sbagliata",
+        score: score
+      }, "*");
+    } catch (e) {}
+
+    showResultModal(false, detailMsg);
+  }
+
+  function showResultModal(isCorrect, detailMsg) {
+    const header = document.getElementById("resultHeader");
+    const msg = document.getElementById("resultMessage");
+    const footer = document.getElementById("resultFooter");
+
+    header.className = "result-modal-header " + (isCorrect ? "correct" : "wrong");
+    header.textContent = isCorrect ? "Risposta corretta" : "Risposta sbagliata";
+    msg.textContent = detailMsg;
+
+    if (isSingleQuestionMode) {
+      footer.innerHTML = `<button class="result-action-btn" onclick="closeModal('resultModal')">Chiudi</button>`;
+    } else if (isCorrect) {
+      if (currentIndex < QUESTIONS.length - 1) {
+        footer.innerHTML = `<button class="result-action-btn" onclick="nextQuestion()">Domanda successiva ➔</button>`;
+      } else {
+        footer.innerHTML = `<button class="result-action-btn" onclick="showFinalSummary()">Vedi riepilogo finale</button>`;
+      }
+    } else {
+      footer.innerHTML = `
+        <button class="result-action-btn secondary" onclick="closeModal('resultModal'); resetCurrentQuestion();">Riprova esercizio</button>
+        ${currentIndex < QUESTIONS.length - 1
+          ? `<button class="result-action-btn" onclick="nextQuestion()">Passa alla successiva ➔</button>`
+          : `<button class="result-action-btn" onclick="showFinalSummary()">Riepilogo finale</button>`
+        }
+      `;
+    }
+
+    document.getElementById("resultModal").classList.add("show");
+  }
+
+  function nextQuestion() {
+    closeModal("resultModal");
+    if (currentIndex < QUESTIONS.length - 1) {
+      currentIndex++;
+      renderQuestion();
+    }
+  }
+
+  function showFinalSummary() {
+    const header = document.getElementById("resultHeader");
+    const msg = document.getElementById("resultMessage");
+    const footer = document.getElementById("resultFooter");
+
+    header.className = "result-modal-header correct";
+    header.textContent = "Test completato";
+    msg.innerHTML = `Hai completato tutti gli esercizi di Word 2007.<br><br><strong>Punteggio totale: ${score} su ${QUESTIONS.length}</strong>`;
+    footer.innerHTML = `<button class="result-action-btn" onclick="restartAll()">Ricomincia dall'inizio</button>`;
+  }
+
+  function restartAll() {
+    closeModal("resultModal");
+    currentIndex = 0;
+    score = 0;
+    answeredQuestions.clear();
+    renderQuestion();
+  }
+
+  init();
+</script>
+</body>
+</html>
